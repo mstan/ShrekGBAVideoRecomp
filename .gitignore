@@ -32,6 +32,7 @@ recomp_coverage_*.json
 rom.cfg
 bios.cfg
 config.ini
+!docs/screenshots/*.png
 
 # Local developer overrides.
 *.local.toml
