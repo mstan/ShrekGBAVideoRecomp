@@ -104,7 +104,6 @@ int main(int argc, char** argv) {
     opts.builtin_game_name = GBARECOMP_BUILTIN_NAME;
     opts.builtin_rom_sha1 = GBARECOMP_BUILTIN_SHA1;
     opts.builtin_rom_crc32 = GBARECOMP_BUILTIN_CRC32;
-    opts.mod_game_id = "shrek-movie-us";
     opts.launcher_region = GBARECOMP_BUILTIN_REGION;
     opts.launcher_game_config = GBARECOMP_DEFAULT_GAME_CONFIG;
     opts.launcher_expose_widescreen = false;

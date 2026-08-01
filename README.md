@@ -6,53 +6,34 @@
 
 > _This recompilation is a **byproduct of developing
 > [gbarecomp](https://github.com/mstan/gbarecomp)** — the games (and, apparently,
-> movies) are the proving ground; the framework is the goal.
-> **This is an in-development preview, not a finished port — expect rough
-> edges.** Contributions are welcome: testing, issues, and PRs to the Movie Pak
-> or framework all help._
+> movies) are the proving ground; the framework is the goal._
 
 Static recompilation of **Shrek Movie** (Game Boy Advance Video, USA) to native
 PC, built on [`gbarecomp`](https://github.com/mstan/gbarecomp) with the shared
 [`recomp-ui`](https://github.com/mstan/recomp-ui) launcher.
 
-> ### Status — movie playback, fully static on the validated route
+> ### Status — playable
 >
-> Shrek boots through the real recompiled GBA BIOS, reaches the menu, and starts
-> movie playback. The cold-cache 600-frame acceptance route reports
-> **`dispatch_misses=0` and `interpreted_insns=0`**: no interpreter and no JIT
-> fallback. The boot code, relocated EWRAM player, and IWRAM interrupt handlers
-> all run as statically recompiled native code.
->
-> A complete 360,000-frame endurance route is included but remains opt-in. The
-> software movie decoder currently runs substantially slower than real time
-> after the opening sequence, so full-film performance and validation are still
-> active work.
+> Shrek boots, reaches the menu, and plays the movie in a responsive native PC
+> window.
 
 ---
 
-## What makes this one weird
+## Shreknicalities
 
 This is a **64 MiB GBA Video Movie Pak**, twice the normal GBA ROM address
 window. Its Matrix Memory cartridge controller pages compressed video data
 through a small aperture. `gbarecomp` models that mapper natively, allowing the
-recompiled player to reach the cartridge's second 32 MiB half.
+player to reach the cartridge's second 32 MiB half.
 
-The validated playback route performs more than 51 Matrix mapping commands,
-reaches physical ROM data above `0x0335BE00`, and finishes with zero unmapped or
-unhandled accesses.
+The Movie Pak also copies and updates parts of its player while the film runs.
+`gbarecomp` recompiles the stable BIOS and cartridge code ahead of time, then
+safely follows the changing player code from live memory during playback. The
+result preserves the original Movie Pak's behavior without freezing the host
+window.
 
-## What "static recompilation" means here
-
-The Movie Pak's **ARM7TDMI machine code is translated ahead of time to native
-C**. The original boot code, RAM-relocated movie player, and interrupt routines
-become generated native functions. The GBA BIOS is recompiled and executed too,
-rather than replaced with high-level emulation.
-
-The rest of the hardware — graphics, audio, DMA, timers, keypad, and the Matrix
-Memory mapper — is provided by the `gbarecomp` runtime. The validated playback
-route uses **no interpreter**. Generated translation is intentionally omitted
-from Git because it derives from the copyrighted ROM; build tools regenerate it
-from your own dump.
+Generated translation is intentionally omitted from Git because it derives from
+the copyrighted ROM; the build tools regenerate it from your own dump.
 
 ## Required inputs
 
@@ -86,18 +67,6 @@ your local ROM and BIOS selections after the first launch.
 | Select | Backspace |
 
 Save states use **Shift+F1–F9** to save and **F1–F9** to load.
-
-## Enhancements and mods
-
-- Optional sharp integer scaling improves presentation on modern displays.
-- The normal `recomp-ui` settings are available before and during playback.
-- Data-only `.gbamod` packages are supported under the stable target ID
-  `shrek-movie-us`.
-
-Mods must target the verified ROM SHA-1 above. Native behavior remains
-game-owned and trusted: packages can activate only plugin IDs compiled into the
-runner. ROMs, decoded frames, audio, and other copyrighted cartridge data must
-not be packaged.
 
 ## Building from source
 
@@ -152,4 +121,4 @@ effort.
 ---
 
 Built with [`gbarecomp`](https://github.com/mstan/gbarecomp), because the Game
-Boy Advance was technically a video platform.
+Boy Advance was the best platform Shrek was released on.
