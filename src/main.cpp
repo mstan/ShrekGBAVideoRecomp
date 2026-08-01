@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "runtime.h"
+#include "runtime_arm.h"
 
 #ifndef GBARECOMP_BUILTIN_NAME
 #define GBARECOMP_BUILTIN_NAME "Shrek Movie (USA)"
@@ -27,6 +28,42 @@
 #endif
 
 namespace {
+
+constexpr uint32_t kMoviePlayerStart = 0x02000000u;
+constexpr uint32_t kMoviePlayerEnd = 0x02002DA8u;
+constexpr uint32_t kIwramStart = 0x03000000u;
+constexpr uint32_t kIwramEnd = 0x03008000u;
+constexpr uint32_t kMatrixApertureStart = 0x08000000u;
+constexpr uint32_t kMatrixApertureEnd = 0x08002000u;
+
+int interpret_live_movie_code(uint32_t pc, int) {
+    // The Movie Pak executes a relocated EWRAM player, copied IWRAM helpers,
+    // and code in its bank-switched 8 KiB cartridge aperture. These regions
+    // change underneath the same guest addresses as playback advances, so they
+    // cannot safely enter AOT even for the first phase: switching only after a
+    // rewrite can strand an already-active generated call chain. Execute all
+    // three live windows through the reference backend from their first entry.
+    // BIOS and stable cartridge code remain recompiled.
+    const bool is_live_code =
+        (pc >= kMoviePlayerStart && pc < kMoviePlayerEnd) ||
+        (pc >= kIwramStart && pc < kIwramEnd) ||
+        (pc >= kMatrixApertureStart && pc < kMatrixApertureEnd);
+    if (!is_live_code) return 0;
+
+    static bool logged = false;
+    if (!logged) {
+        logged = true;
+        std::fprintf(
+            stderr,
+            "movie_code_backend=interpreter player=0x%08X..0x%08X "
+            "iwram=0x%08X..0x%08X "
+            "aperture=0x%08X..0x%08X entry_pc=0x%08X\n",
+            kMoviePlayerStart, kMoviePlayerEnd,
+            kIwramStart, kIwramEnd,
+            kMatrixApertureStart, kMatrixApertureEnd, pc);
+    }
+    return 1;
+}
 
 void apply_movie_window_defaults(int argc, char** argv) {
     bool windowed = true;
@@ -52,6 +89,7 @@ void apply_movie_window_defaults(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     apply_movie_window_defaults(argc, argv);
+    g_runtime_force_interp_hook = interpret_live_movie_code;
 
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--help") == 0 ||
