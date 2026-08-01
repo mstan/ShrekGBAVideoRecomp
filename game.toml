@@ -1,0 +1,137 @@
+# Shrek Movie (USA, MSKE, revision 5) — GBA Video Movie Pak.
+
+[game]
+name = "Shrek Movie"
+short_name = "shrek_movie"
+default_region = "usa"
+
+[program]
+name = "Shrek Movie (USA)"
+id = "MSKE"
+load_address = 0x08000000
+# The physical Matrix Memory image is 64 MiB. Only the normal 32 MiB GBA
+# address window is executable; the mapper pages video data into an 8 KiB
+# aperture at the start of that window.
+size = 0x04000000
+entry_pc = 0x08000000
+speculative_literal_harvest = false
+aot_scan_start = 0x08000000
+aot_scan_end = 0x0A000000
+static_resume_all = true
+codegen_shards = 32
+
+[identity]
+sha1 = "2dedea86ec289a0e31089299613d9f74cca03609"
+md5 = "cefd35569b6321beeba225e3a5805d6e"
+
+[bios]
+path = "gbarecomp/bios/gba_bios.bin"
+sha1 = "300c20df6731a33952ded8c436f7f186d25d3492"
+hle = false
+
+[rom]
+path = "roms/shrek_movie_usa.gba"
+sha1 = "2dedea86ec289a0e31089299613d9f74cca03609"
+crc32 = "0x690176E5"
+
+[runtime]
+debug_port = 19883
+window_title = "ShrekMovieRecomp"
+
+[video]
+screen = "frontlit"
+widescreen = 0
+sharp_filter = true
+affine_filter = false
+
+[audio]
+shadow = false
+
+# Matrix Memory's reset layout maps physical ROM 0x00000200..0x000011FF
+# over the CPU-visible 0x08001000..0x08001FFF aperture. The boot vector jumps
+# to 0x08001000 before the player programs its first explicit mapping.
+[[code_copy]]
+runtime_start = 0x08001000
+source_start = 0x08000200
+size = 0x00001000
+name = "matrix_reset_boot_window"
+note = "Matrix Memory power-on mapping; verified against mGBA cart/matrix.c"
+
+# Boot copies the complete movie player module byte-for-byte from the reset
+# aperture into EWRAM, then enters it at +0x58. Captured at the first RAM
+# dispatch and verified against the stock ROM through the exact 0x2DA8-byte
+# copy boundary.
+[[code_copy]]
+runtime_start = 0x02000000
+source_start = 0x08000A00
+size = 0x00002DA8
+name = "movie_player_ewram"
+note = "Boot-time EWRAM player relocation; live capture matches ROM exactly"
+
+[[extra_func]]
+addr = 0x02000058
+mode = "arm"
+name = "movie_player_entry"
+note = "Observed first EWRAM dispatch target after boot relocation"
+
+# Boot also copies the IRQ dispatcher and its default handlers into IWRAM.
+# The first 0x20 bytes are runtime vector/data slots, so only the exact
+# byte-for-byte ROM-backed region is declared as executable code.
+[[code_copy]]
+runtime_start = 0x03000000
+source_start = 0x080037A8
+size = 0x00000004
+name = "irq_default_iwram"
+note = "Default empty IRQ handler copied from ROM; following bytes are live vector data"
+
+[[code_copy]]
+runtime_start = 0x03000020
+source_start = 0x080037C8
+size = 0x00000238
+name = "irq_dispatcher_iwram"
+note = "Live IWRAM capture matches ROM exactly from +0x20 through +0x257"
+
+[[extra_func]]
+addr = 0x03000050
+mode = "arm"
+name = "irq_dispatcher"
+note = "Observed live IWRAM IRQ entry; ROM source is 0x080037F8"
+
+[[extra_func]]
+addr = 0x03000000
+mode = "arm"
+name = "irq_default_handler"
+note = "Empty default handler referenced by the live IRQ vector table"
+
+[[extra_func]]
+addr = 0x03000180
+mode = "arm"
+name = "irq_vblank_handler"
+note = "Observed VBlank handler; ROM source is 0x08003928"
+
+[[extra_func]]
+addr = 0x03000194
+mode = "arm"
+name = "irq_empty_handler"
+note = "Empty handler referenced by the live IRQ vector table"
+
+# The player uses two five-state ARM dispatch tables for display fades and
+# logo/movie presentation setup. Both dispatchers bound the index to 0..4
+# before `ldr pc, [pc, index, lsl #2]`.
+[[jump_table]]
+addr = 0x02000344
+stride = 4
+count = 5
+format = "abs32"
+entries_mode = "arm"
+name = "display_transition_state_switch"
+note = "Reviewed dispatcher at 0x0200033C"
+
+[[jump_table]]
+addr = 0x02000578
+stride = 4
+count = 5
+format = "abs32"
+entries_mode = "arm"
+name = "presentation_setup_state_switch"
+note = "Reviewed dispatcher at 0x02000570"

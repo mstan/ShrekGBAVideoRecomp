@@ -1,0 +1,45 @@
+# User-supplied copyrighted inputs.
+roms/
+*.gba
+*.GBA
+gbarecomp/bios/*.bin
+
+# Generated translation derived from the ROM.
+generated/*.c
+generated/*.cpp
+generated/*.h
+generated/*.json
+!generated/README.md
+
+# Build, runtime, and diagnostic output.
+build/
+build-*/
+release-stage/
+recomp_cache/
+mods/state.toml
+mods/staging/
+mods/installed/
+saves/
+*.sav
+*.srm
+*.log
+*.png
+*.bmp
+*.rgb
+*.csv
+*.frag
+recomp_coverage_*.json
+rom.cfg
+bios.cfg
+config.ini
+
+# Local developer overrides.
+*.local.toml
+*.local.ini
+.vscode/
+.idea/
+.vs/
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store
