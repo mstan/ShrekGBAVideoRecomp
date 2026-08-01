@@ -15,6 +15,7 @@ Booting native bring-up. The project has:
 - native Matrix Memory mapper support for GBA Video movie cartridges;
 - real recompiled-BIOS boot when the user supplies the verified BIOS;
 - statically recompiled boot, EWRAM player, and IWRAM IRQ relocations;
+- a Shrek-specific responsive window-loop default for long video decode spans;
 - recomp-ui pre-boot and in-game settings surfaces;
 - data-only `.gbamod` loading under the stable ID `shrek-movie-us`;
 - an optional sharp-scaling presentation enhancement; and

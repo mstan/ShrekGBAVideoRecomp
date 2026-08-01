@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -25,7 +26,33 @@
 #include "game_launcher_boot.h"
 #endif
 
+namespace {
+
+void apply_movie_window_defaults(int argc, char** argv) {
+    bool windowed = true;
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--no-window") == 0) {
+            windowed = false;
+            break;
+        }
+    }
+    if (!windowed || std::getenv("GBARECOMP_PRESENT_IN_PLACE")) return;
+
+    // The movie player can spend a long time inside one translated decode
+    // dispatch. Let the ordinary per-frame host loop regain control so Windows
+    // messages and SDL events keep flowing throughout that work.
+#if defined(_WIN32)
+    _putenv_s("GBARECOMP_PRESENT_IN_PLACE", "0");
+#else
+    setenv("GBARECOMP_PRESENT_IN_PLACE", "0", 0);
+#endif
+}
+
+}  // namespace
+
 int main(int argc, char** argv) {
+    apply_movie_window_defaults(argc, argv);
+
     for (int i = 1; i < argc; ++i) {
         if (std::strcmp(argv[i], "--help") == 0 ||
             std::strcmp(argv[i], "-h") == 0) {
