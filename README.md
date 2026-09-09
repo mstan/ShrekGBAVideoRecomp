@@ -108,6 +108,11 @@ pwsh tools/test-full-movie.ps1
 The long route represents roughly the duration of the film at 60 GBA frames per
 second and is intentionally excluded from routine regression runs.
 
+## License
+
+PolyForm Noncommercial 1.0.0 — see [`LICENSE`](LICENSE). Third-party
+components retain their own licenses.
+
 ## Legal
 
 This project contains **no ROM, Nintendo BIOS, decoded movie frames, audio, or
