@@ -1,0 +1,6 @@
+# gbarecomp-keyinput-v1
+# frame,keyinput_active_low
+# Wait for the main menu, press A on Play, then release for the movie.
+0,0x03ff
+6000,0x03fe
+6012,0x03ff

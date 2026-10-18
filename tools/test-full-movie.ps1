@@ -8,9 +8,22 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $smoke = Join-Path $PSScriptRoot "test-playback.ps1"
+$replay = Join-Path $root "tests\start-movie.input"
 
-& $smoke -Rom $Rom -Bios $Bios -BuildDir $BuildDir -Frames $Frames
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+$oldStrict = $env:GBARECOMP_STRICT_STATIC
+$oldHeal = $env:GBARECOMP_SELFHEAL_RECOMPILE
+$oldAudio = $env:SDL_AUDIODRIVER
+try {
+    $env:GBARECOMP_STRICT_STATIC = '1'
+    $env:GBARECOMP_SELFHEAL_RECOMPILE = '0'
+    $env:SDL_AUDIODRIVER = 'dummy'
+    & $smoke -Rom $Rom -Bios $Bios -BuildDir $BuildDir -Frames $Frames -InputReplay $replay
+    if ($LASTEXITCODE -ne 0) { throw "Movie playback failed ($LASTEXITCODE)" }
+} finally {
+    $env:GBARECOMP_STRICT_STATIC = $oldStrict
+    $env:GBARECOMP_SELFHEAL_RECOMPILE = $oldHeal
+    $env:SDL_AUDIODRIVER = $oldAudio
+}
 
 $log = Join-Path $root "$BuildDir\acceptance\playback-$Frames.log"
 $text = Get-Content -LiteralPath $log -Raw
